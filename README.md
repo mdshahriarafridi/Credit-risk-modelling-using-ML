@@ -79,12 +79,13 @@ credit-risk-modelling-using-ml/
 |-- app.py
 |-- german_credit_data.csv
 |-- model_training.ipynb
-|-- extra_trees_credit_model.pkl
-|-- Sex_encoder.pkl
-|-- Housing_encoder.pkl
-|-- Saving accounts_encoder.pkl
-|-- Checking account_encoder.pkl
-|-- target_encoder.pkl
+|-- models/
+|   |-- extra_trees_credit_model.pkl
+|   |-- Sex_encoder.pkl
+|   |-- Housing_encoder.pkl
+|   |-- Saving accounts_encoder.pkl
+|   |-- Checking account_encoder.pkl
+|   `-- target_encoder.pkl
 |-- requirements.txt
 `-- README.md
 ```
@@ -144,12 +145,12 @@ The app depends on the following saved files:
 
 | File | Purpose |
 |---|---|
-| `extra_trees_credit_model.pkl` | Trained Extra Trees model used for prediction |
-| `Sex_encoder.pkl` | Encoder for the `Sex` feature |
-| `Housing_encoder.pkl` | Encoder for the `Housing` feature |
-| `Saving accounts_encoder.pkl` | Encoder for the `Saving accounts` feature |
-| `Checking account_encoder.pkl` | Encoder for the `Checking account` feature |
-| `target_encoder.pkl` | Encoder for the target labels |
+| `models/extra_trees_credit_model.pkl` | Trained Extra Trees model used for prediction |
+| `models/Sex_encoder.pkl` | Encoder for the `Sex` feature |
+| `models/Housing_encoder.pkl` | Encoder for the `Housing` feature |
+| `models/Saving accounts_encoder.pkl` | Encoder for the `Saving accounts` feature |
+| `models/Checking account_encoder.pkl` | Encoder for the `Checking account` feature |
+| `models/target_encoder.pkl` | Encoder for the target labels |
 
 Do not rename these files unless you also update the loading logic in `app.py`.
 
