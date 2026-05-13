@@ -30,21 +30,10 @@ Thumbs.db
 # Logs
 *.log
 
-# Data files
-*.csv
-*.xlsx
-*.json
-
-# Model files
-*.h5
-*.keras
-*.pkl
-*.joblib
 
 # TensorFlow / PyTorch checkpoints
 checkpoints/
-saved_models/
-models/
+
 
 # Build files
 build/
@@ -70,6 +59,3 @@ htmlcov/
 
 # mypy
 .mypy_cache/
-
-# Streamlit
-.streamlit/secrets.toml
