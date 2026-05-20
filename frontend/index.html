@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Credit Risk Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f8ef7;
+      --accent-glow: rgba(79,142,247,0.25);
+      --good: #22c55e;
+      --good-glow: rgba(34,197,94,0.2);
+      --bad: #ef4444;
+      --bad-glow: rgba(239,68,68,0.2);
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header .badge {
+      display: inline-block;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      margin-bottom: 14px;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+    header p {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: .95rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 780px;
+    }
+
+    /* ── Progress steps ── */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 36px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: calc(50% - 100px);
+      width: 200px;
+      height: 2px;
+      background: var(--border);
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 120px;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      transition: all .3s;
+    }
+    .step.active .step-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .step.done .step-dot {
+      background: var(--good);
+      border-color: var(--good);
+      color: #fff;
+    }
+    .step-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .step.active .step-label { color: var(--accent); }
+    .step.done .step-label { color: var(--good); }
+
+    /* ── Sections ── */
+    .section { display: none; }
+    .section.active { display: block; animation: fadeIn .35s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    .section-title {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    /* ── Grid ── */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Form controls ── */
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    label { font-size: .8rem; font-weight: 600; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+
+    input[type="number"], select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: .95rem;
+      padding: 10px 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    input[type="number"]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238892a4' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+    /* ── Range slider ── */
+    .range-wrap { position: relative; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface2);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      cursor: pointer;
+    }
+    .range-value {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .range-value::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 4px solid transparent;
+      border-top-color: var(--accent);
+    }
+
+    /* ── Job pills ── */
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill {
+      flex: 1; min-width: 60px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s;
+      user-select: none;
+    }
+    .pill:hover { border-color: var(--accent); color: var(--accent); }
+    .pill.selected { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+    input[type="hidden"] { display: none; }
+
+    /* ── Navigation buttons ── */
+    .nav { display: flex; justify-content: space-between; margin-top: 32px; gap: 12px; }
+    .btn {
+      padding: 11px 28px;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+
+    /* ── Review table ── */
+    .review-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px) { .review-grid { grid-template-columns: 1fr; } }
+    .review-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .review-item .r-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .review-item .r-val { font-size: 1rem; font-weight: 600; margin-top: 3px; }
+
+    /* ── Result ── */
+    #result { display: none; }
+    .result-card {
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+      border: 1px solid;
+      transition: all .4s;
+    }
+    .result-card.good {
+      background: var(--good-glow);
+      border-color: var(--good);
+    }
+    .result-card.bad {
+      background: var(--bad-glow);
+      border-color: var(--bad);
+    }
+    .result-icon { font-size: 3rem; margin-bottom: 12px; }
+    .result-label { font-size: 1.8rem; font-weight: 800; letter-spacing: -.01em; }
+    .result-card.good .result-label { color: var(--good); }
+    .result-card.bad .result-label { color: var(--bad); }
+    .result-sub { color: var(--muted); font-size: .9rem; margin-top: 6px; }
+
+    /* ── Probability bar ── */
+    .prob-section { margin-bottom: 24px; }
+    .prob-title { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+    .prob-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .prob-row-label { width: 36px; font-size: .82rem; font-weight: 600; }
+    .prob-bar-bg { flex: 1; height: 10px; background: var(--surface2); border-radius: 5px; overflow: hidden; }
+    .prob-bar-fill { height: 100%; border-radius: 5px; width: 0; transition: width 1s cubic-bezier(.4,0,.2,1); }
+    .prob-bar-fill.good { background: var(--good); }
+    .prob-bar-fill.bad { background: var(--bad); }
+    .prob-pct { width: 44px; text-align: right; font-size: .85rem; font-weight: 700; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-box {
+      background: rgba(239,68,68,.1);
+      border: 1px solid var(--bad);
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: var(--bad);
+      font-size: .9rem;
+      display: none;
+      margin-top: 16px;
+    }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">ML-Powered</div>
+  <h1>Credit Risk Predictor</h1>
+  <p>Enter applicant details to assess credit risk using an Extra Trees classifier</p>
+</header>
+
+<div class="card">
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step-1" onclick="goToStep(1)">
+      <div class="step-dot">1</div>
+      <div class="step-label">Personal</div>
+    </div>
+    <div class="step" id="step-2" onclick="goToStep(2)">
+      <div class="step-dot">2</div>
+      <div class="step-label">Financial</div>
+    </div>
+    <div class="step" id="step-3" onclick="goToStep(3)">
+      <div class="step-dot">3</div>
+      <div class="step-label">Review</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Personal -->
+  <div class="section active" id="section-1">
+    <div class="section-title">Personal Information</div>
+    <div class="grid">
+
+      <div class="field">
+        <label>Age</label>
+        <div class="range-wrap" style="padding-top:32px">
+          <span class="range-value" id="age-display">30</span>
+          <input type="range" id="age" min="18" max="80" value="30" oninput="updateRange('age','age-display')">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Sex</label>
+        <div class="pills">
+          <div class="pill selected" data-val="male" onclick="selectPill(this,'sex-val')">Male</div>
+          <div class="pill" data-val="female" onclick="selectPill(this,'sex-val')">Female</div>
+        </div>
+        <input type="hidden" id="sex-val" value="male">
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>Job Type</label>
+        <div class="pills">
+          <div class="pill selected" data-val="0" onclick="selectPill(this,'job-val')">0 — Unskilled<br><small style="font-weight:400;font-size:.7rem">(non-resident)</small></div>
+          <div class="pill" data-val="1" onclick="selectPill(this,'job-val')">1 — Unskilled<br><small style="font-weight:400;font-size:.7rem">(resident)</small></div>
+          <div class="pill" data-val="2" onclick="selectPill(this,'job-val')">2 — Skilled</div>
+          <div class="pill" data-val="3" onclick="selectPill(this,'job-val')">3 — Highly Skilled</div>
+        </div>
+        <input type="hidden" id="job-val" value="0">
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>Housing</label>
+        <div class="pills">
+          <div class="pill selected" data-val="own" onclick="selectPill(this,'housing-val')">Own</div>
+          <div class="pill" data-val="rent" onclick="selectPill(this,'housing-val')">Rent</div>
+          <div class="pill" data-val="free" onclick="selectPill(this,'housing-val')">Free</div>
+        </div>
+        <input type="hidden" id="housing-val" value="own">
+      </div>
+
+    </div>
+    <div class="nav">
+      <span></span>
+      <button class="btn btn-primary" onclick="goToStep(2)">Next &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Section 2: Financial -->
+  <div class="section" id="section-2">
+    <div class="section-title">Financial Details</div>
+    <div class="grid">
+
+      <div class="field" style="grid-column:1/-1">
+        <label>Saving Accounts</label>
+        <div class="pills">
+          <div class="pill selected" data-val="little" onclick="selectPill(this,'saving-val')">Little</div>
+          <div class="pill" data-val="moderate" onclick="selectPill(this,'saving-val')">Moderate</div>
+          <div class="pill" data-val="quite rich" onclick="selectPill(this,'saving-val')">Quite Rich</div>
+          <div class="pill" data-val="rich" onclick="selectPill(this,'saving-val')">Rich</div>
+        </div>
+        <input type="hidden" id="saving-val" value="little">
+      </div>
+
+      <div class="field" style="grid-column:1/-1">
+        <label>Checking Account</label>
+        <div class="pills">
+          <div class="pill selected" data-val="little" onclick="selectPill(this,'checking-val')">Little</div>
+          <div class="pill" data-val="moderate" onclick="selectPill(this,'checking-val')">Moderate</div>
+          <div class="pill" data-val="rich" onclick="selectPill(this,'checking-val')">Rich</div>
+        </div>
+        <input type="hidden" id="checking-val" value="little">
+      </div>
+
+      <div class="field">
+        <label>Credit Amount (€)</label>
+        <input type="number" id="credit-amount" min="0" max="100000" value="1000" step="100">
+      </div>
+
+      <div class="field">
+        <label>Duration (months)</label>
+        <div class="range-wrap" style="padding-top:32px">
+          <span class="range-value" id="dur-display">12</span>
+          <input type="range" id="duration" min="1" max="72" value="12" oninput="updateRange('duration','dur-display')">
+        </div>
+      </div>
+
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goToStep(1)">&larr; Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Review &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Section 3: Review -->
+  <div class="section" id="section-3">
+    <div class="section-title">Review &amp; Predict</div>
+    <div class="review-grid" id="review-grid"></div>
+    <div class="error-box" id="error-box"></div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="goToStep(2)">&larr; Back</button>
+      <button class="btn btn-primary" id="predict-btn" onclick="runPrediction()">Predict Risk</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="result">
+    <hr class="divider">
+    <div class="result-card" id="result-card">
+      <div class="result-icon" id="result-icon"></div>
+      <div class="result-label" id="result-label"></div>
+      <div class="result-sub" id="result-sub"></div>
+    </div>
+    <div class="prob-section">
+      <div class="prob-title">Prediction Confidence</div>
+      <div class="prob-row">
+        <div class="prob-row-label" style="color:var(--good)">Good</div>
+        <div class="prob-bar-bg"><div class="prob-bar-fill good" id="bar-good"></div></div>
+        <div class="prob-pct" id="pct-good" style="color:var(--good)">—</div>
+      </div>
+      <div class="prob-row">
+        <div class="prob-row-label" style="color:var(--bad)">Bad</div>
+        <div class="prob-bar-bg"><div class="prob-bar-fill bad" id="bar-bad"></div></div>
+        <div class="prob-pct" id="pct-bad" style="color:var(--bad)">—</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="resetForm()">Start Over</button>
+  </div>
+</div>
+
+<script>
+  const API = "http://127.0.0.1:5000/predict";
+
+  // ── Range sliders ──
+  function updateRange(inputId, displayId) {
+    const input = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
+    display.textContent = input.value;
+    const pct = (input.value - input.min) / (input.max - input.min);
+    input.style.background = `linear-gradient(to right, var(--accent) ${pct*100}%, var(--surface2) ${pct*100}%)`;
+    // reposition tooltip
+    display.style.left = `calc(${pct*100}% + ${8 - pct*16}px)`;
+  }
+  // init sliders on load
+  window.addEventListener('DOMContentLoaded', () => {
+    updateRange('age','age-display');
+    updateRange('duration','dur-display');
+  });
+
+  // ── Pills ──
+  function selectPill(el, hiddenId) {
+    el.closest('.pills').querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById(hiddenId).value = el.dataset.val;
+  }
+
+  // ── Steps ──
+  let currentStep = 1;
+  function goToStep(n) {
+    document.getElementById(`section-${currentStep}`).classList.remove('active');
+    document.getElementById(`step-${currentStep}`).classList.remove('active');
+    if (n > currentStep) document.getElementById(`step-${currentStep}`).classList.add('done');
+    if (n < currentStep) document.getElementById(`step-${currentStep}`).classList.remove('done');
+    currentStep = n;
+    document.getElementById(`section-${currentStep}`).classList.add('active');
+    document.getElementById(`step-${currentStep}`).classList.add('active');
+    document.getElementById(`step-${currentStep}`).classList.remove('done');
+    if (n === 3) buildReview();
+  }
+
+  // ── Review ──
+  const labels = [
+    ['Age', () => document.getElementById('age').value + ' years'],
+    ['Sex', () => document.getElementById('sex-val').value],
+    ['Job', () => {
+      const j = document.getElementById('job-val').value;
+      return ['Unskilled (non-res)','Unskilled (res)','Skilled','Highly Skilled'][j];
+    }],
+    ['Housing', () => document.getElementById('housing-val').value],
+    ['Saving Accounts', () => document.getElementById('saving-val').value],
+    ['Checking Account', () => document.getElementById('checking-val').value],
+    ['Credit Amount', () => '€' + Number(document.getElementById('credit-amount').value).toLocaleString()],
+    ['Duration', () => document.getElementById('duration').value + ' months'],
+  ];
+  function buildReview() {
+    const grid = document.getElementById('review-grid');
+    grid.innerHTML = labels.map(([l,v]) =>
+      `<div class="review-item"><div class="r-label">${l}</div><div class="r-val">${v()}</div></div>`
+    ).join('');
+  }
+
+  // ── Prediction ──
+  async function runPrediction() {
+    const btn = document.getElementById('predict-btn');
+    const errBox = document.getElementById('error-box');
+    errBox.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Analysing…';
+
+    const payload = {
+      age: document.getElementById('age').value,
+      sex: document.getElementById('sex-val').value,
+      job: document.getElementById('job-val').value,
+      housing: document.getElementById('housing-val').value,
+      saving_accounts: document.getElementById('saving-val').value,
+      checking_account: document.getElementById('checking-val').value,
+      credit_amount: document.getElementById('credit-amount').value,
+      duration: document.getElementById('duration').value,
+    };
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      showResult(data);
+    } catch (err) {
+      errBox.textContent = 'Error: ' + err.message;
+      errBox.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Predict Risk';
+    }
+  }
+
+  function showResult(data) {
+    const isGood = data.prediction === 1;
+    const card = document.getElementById('result-card');
+    card.className = 'result-card ' + (isGood ? 'good' : 'bad');
+    document.getElementById('result-icon').textContent = isGood ? '✅' : '⚠️';
+    document.getElementById('result-label').textContent = (isGood ? 'Good' : 'Bad') + ' Credit Risk';
+    document.getElementById('result-sub').textContent = `Model confidence: ${data.confidence}%`;
+
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // animate bars after a tick
+    setTimeout(() => {
+      document.getElementById('bar-good').style.width = data.prob_good + '%';
+      document.getElementById('bar-bad').style.width = data.prob_bad + '%';
+      document.getElementById('pct-good').textContent = data.prob_good + '%';
+      document.getElementById('pct-bad').textContent = data.prob_bad + '%';
+    }, 80);
+  }
+
+  function resetForm() {
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('bar-good').style.width = '0';
+    document.getElementById('bar-bad').style.width = '0';
+    goToStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

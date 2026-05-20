@@ -1,61 +1,92 @@
-# Python cache
+# ── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
 
-# Virtual environments
+# ── Virtual environments ─────────────────────────────────────────────────────
 venv/
 env/
 ENV/
 .venv/
+.env/
 
-# Jupyter Notebook
-.ipynb_checkpoints/
-
-# VS Code
-.vscode/
-
-# PyCharm
-.idea/
-
-# macOS
-.DS_Store
-
-# Windows
-Thumbs.db
-
-# Environment variables
-.env
-
-# Logs
-*.log
-
-
-# TensorFlow / PyTorch checkpoints
-checkpoints/
-
-
-# Build files
+# ── Distribution / packaging ─────────────────────────────────────────────────
 build/
 dist/
 *.egg-info/
+*.egg
+MANIFEST
+site/
 
-# Node modules (if using frontend/backend)
-node_modules/
+# ── Jupyter Notebook ─────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
 
-# Google Colab
-/content/
+# ── ML model artifacts ───────────────────────────────────────────────────────
+# Uncomment the line below to exclude large model files from git.
+# Commit them only if they are small enough, or use Git LFS instead.
+# models/*.pkl
 
-# Temporary files
+# ── Environment & secrets ────────────────────────────────────────────────────
+.env
+.env.*
+*.secret
+secrets.json
+
+# ── Logs & profiling ─────────────────────────────────────────────────────────
+*.log
+*.prof
+logs/
+
+# ── Testing & coverage ───────────────────────────────────────────────────────
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+test-results/
+
+# ── Type checkers & linters ──────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+.ruff_cache/
+.pytype/
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Temporary files ──────────────────────────────────────────────────────────
 tmp/
 temp/
+*.tmp
+*.bak
+*.orig
 
-# Coverage reports
-.coverage
-htmlcov/
+# ── Node (if any frontend tooling is added later) ───────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
 
-# pytest
-.pytest_cache/
+# ── Claude Code ──────────────────────────────────────────────────────────────
+.claude/
 
-# mypy
-.mypy_cache/
+# ── Streamlit ────────────────────────────────────────────────────────────────
+.streamlit/secrets.toml
